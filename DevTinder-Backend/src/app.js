@@ -1,45 +1,49 @@
-const { connectDB } = require("./config/database");
-const { User } = require("./models/user");
-const { validateSignupData } = require("./utils/validation");
-const bcrypt = require("bcrypt");
-const validator = require("validator");
-const cookieParser = require("cookie-parser");
-const {userAuth} = require("./middlewares/auth");
-
 const express = require("express");
-const app = express();
-const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const { connectDB } = require("./config/database");
 require("dotenv").config();
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL, // allow local + deployed frontend
-    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
-    credentials: true, // allow cookies / JWT
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const app = express();
 
-app.use(express.json()); //middelware that convert json to js object
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://dev-tinder-six-peach.vercel.app"
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+app.use(express.json());
 app.use(cookieParser());
 
-const authRouter = require("./routes/auth");
-const profileRouter = require("./routes/profile");
-const requestRouter = require("./routes/request");
-const userRouter = require("./routes/user");
+// Routers
+app.use("/", require("./routes/auth"));
+app.use("/", require("./routes/profile"));
+app.use("/", require("./routes/request"));
+app.use("/", require("./routes/user"));
 
-app.use("/", authRouter);
-app.use("/", profileRouter);
-app.use("/", requestRouter);
-app.use("/", userRouter);
+// Connect DB
+connectDB();
 
-connectDB()
-  .then(() => {
-    console.log("Databse connected successfully");
-    app.listen(process.env.PORT, () => {
-      console.log(`Server is successfully listening on port ${process.env.PORT}...`);
-    });    
-  })
-  .catch((err) => {
-    console.log("Database connection failed");
+// ✅ Export app for Vercel
+module.exports = app;
+
+// ✅ Run locally with `node app.js`
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
   });
+}
