@@ -8,7 +8,7 @@ import ConnectionListCard from './ConnectionListCard';
 function Connections() {
   const dispatch = useDispatch();
 
-  const connections = useSelector((store)=> store.connections);
+  const connections = useSelector((store)=> store.connection);
 
   
   
