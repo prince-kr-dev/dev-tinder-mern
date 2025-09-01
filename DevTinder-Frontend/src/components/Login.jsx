@@ -19,18 +19,22 @@ const Login = () => {
     try {
       const res = await axios.post(
         URL + "/login",
-        {
-          email,
-          password,
-        },
+        { email, password },
         { withCredentials: true }
       );
-      // console.log(res.data.user)
+
+      // ✅ If backend returns a token, save it
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
+      // ✅ Save user into Redux + localStorage
       dispatch(addUser(res.data.user));
-      return navigate("/feed");
+
+      navigate("/feed");
     } catch (err) {
-      setError(err.response.data);
-      console.log(err);
+      setError(err.response?.data || "Login failed");
+      console.error(err);
     }
   };
 
@@ -38,22 +42,19 @@ const Login = () => {
     try {
       const res = await axios.post(
         URL + "/signup",
-        {
-          firstName,
-          lastName,
-          email,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
+        { firstName, lastName, email, password },
+        { withCredentials: true }
       );
-      console.log(res);
-      dispatch(addUser(res.data.data));
-      return navigate("/feed");
-    } catch (error) {
-      setError(error.response.data);
-      console.log(error);
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
+      dispatch(addUser(res.data.user || res.data.data));
+      navigate("/feed");
+    } catch (err) {
+      setError(err.response?.data || "Signup failed");
+      console.error(err);
     }
   };
 
