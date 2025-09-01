@@ -1,3 +1,3 @@
-const URL = "https://dev-tinder-server-omega.vercel.app/api";
+const URL = "https://dev-tinder-server-omega.vercel.app";
 
 export {URL};
